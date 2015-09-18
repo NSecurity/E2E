@@ -14,16 +14,11 @@
 |session_id(32)|세션ID||O||O|O|
 |contents(*)|상세내용||O||O|O|
 ||random(32)|timestamp(4) + client random(28)|X||O|O|
-||cipher_suites_length(1)|가능한 chipher suites 리스트 갯수|X||X|O|
 ||cipher_suites_list(*)|[symetric-key(1) + public-key(1) + hmac(1)]*갯수|X|[2]|X|O|
 ||cipher_suites_selected(3)|서버가 선택한 cipher suites|X||O|X|
-||server_name(22)|서버 이름|?||?|?|
-||certificate_length(3)|서버인증서 길이|X||O|X|
 ||certificate(*)|서버인증서|X||O|X|
 ||key_exchange(128)|클라이언트 키 교환|X||X|O|
 ||finished(128)|data 통신 준비 완료|X||O|O|
-||application_data_length(3)|실제 데이터 길이|X||O|O|
-||application_data(*)|실제 데이터|X||O|O|  
 
 #### **Sequence Diagram**
 ```sequence
@@ -40,16 +35,15 @@ Server->Client: applicationData
 #### **Server To Client**
 - send 'serverHello'
 > clientHello에 대한 응답으로 server random 값,  클라이언트에서 받은 cipher_suites_list 중 서버가 선택
-> 한 값(cipher_suites_selected),  서버 이름 정보를 contents에 담아 전송한다.
+> 한 값(cipher_suites_selected)을 contents에 담아 전송한다.
  
 ```
 {
-	"type": "02",
 	"session_id": "00000000...",
 	"contents": {
+		"type": "02",
 		"random": "0000...",
-		"cipher_suites_selected": "01",
-		"server_name": "www.nomadconnection.com"
+		"cipher_suites_selected": "01"
 	}
 }
 ```  
@@ -58,10 +52,9 @@ Server->Client: applicationData
 > 서버 인증서를 클라이언트로 보낸다.
 ```
 {
-	"type": "03",
 	"session_id": "00000000...",
 	"contents": {
-		"certificate_length": "010101",
+		"type": "03",
 		"certificate": "000000..."
 	}
 }
@@ -69,23 +62,12 @@ Server->Client: applicationData
 
 - send 'finished'
 > 클라이언트에서 finished를 받으면 응답으로 보낸다.
-> 특정 값을 암호화하여 보낸다.
+> master-key로 특정 값을 암호화하여 보낸다.
 ```
 {
-	"type": "05",
 	"session_id": "00000000...",
 	"contents": {
-		"finished": "000000..."
-	}
-}
-```
-- send 'data'
-> master-key로 암호화한 application data를 보낸다.
-```
-{
-	"type": "06",
-	"session_id": "00000000...",
-	"contents": {
+		"type": "06",
 		"finished": "000000..."
 	}
 }
@@ -93,31 +75,42 @@ Server->Client: applicationData
 
 #### **Client To Server**
 - send 'clientHello'
-> 클라이언트는 서버에 접속한 뒤 client random 값,  지원 가능한 cipher suites 목록(cipher_suites_list),  
-> cipher suites  목록 갯수(cipher_suites_list), 서버 이름 정보를 contents에 담아 전송한다.
+> 클라이언트는 서버에 접속한 뒤 client random 값,  지원 가능한 cipher suites 목록(cipher_suites_list)  
+> 을 contents에 담아 전송한다.
  
 ```
 {
-	"type": "01",
-	"session_id": "00000000...",
+	"session_id": "",
 	"contents": {
+		"type": "01",
 		"random": "0000...",
-		"cipher_suites_length": "01",
-		"cipher_suites_list": "010101",
-		"server_name": "www.nomadconnection.com"
+		"cipher_suites_list": {"010101", "010102"...}
 	}
 }
 ```  
 
 - send 'keyExchange'
-> 클라이언트는 서버 인증서를 받아 공개키를 추출하고 자신의 비밀키를 이 공개키로 암호화 한 후
-> pre-master-key를 생성하여 서버로 전송한다.
+> 클라이언트는 서버 인증서를 받아 공개키를 추출하고 공개키로 pre-master-key를
+> 암호화 생성하여 서버로 전송한다.
 ```
 {
-	"type": "04",
 	"session_id": "00000000...",
 	"contents": {
+		"type": "04",
 		"key_exchange": "0000..."
+	}
+}
+```
+
+- send 'finished'
+> 클라이언트는 pre-master-key를 이용해 master-key를 생성 후
+> 특정 값을 암호화하여 보낸다.
+```
+{
+	"session_id": "00000000...",
+	"contents": {
+		"type": "05",
+		"finished": "000000..."
 	}
 }
 ```
@@ -130,7 +123,7 @@ Server->Client: applicationData
 |03|certificate|
 |04|keyExchange|
 |05|finished|
-|06|applicationData|
+|06|finished|
 
 ####**[2]cipher suites**
 #####**1st byte(비밀키 암호화 알고리즘)**
@@ -148,6 +141,7 @@ Server->Client: applicationData
 |:--|:--|
 |01|MD5|
 |02|SHA1|
+|03|SHA256|
 
 #EMS Protocols
 ####**CMS protocol definition**

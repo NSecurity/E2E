@@ -12,7 +12,7 @@
 |:--|:--|:--|:--|:--|:--|:--|
 |session_id(32)|세션ID||O||O|O|
 |contents(*)|상세내용||O||O|O|
-||type(1)|통신종류||O|[1]|O|O|
+||type(1)|통신종류|O|[1]|O|O|
 ||random(32)|timestamp(4) + client random(28)|X||O|O|
 ||cipher_suites_list(*)|[symetric-key(1) + public-key(1) + hmac(1)]*갯수|X|[2]|X|O|
 ||cipher_suites_selected(3)|서버가 선택한 cipher suites|X||O|X|
@@ -34,7 +34,7 @@ Server->Client: applicationData
 
 #### **Server To Client**
 - send 'serverHello'
-- clientHello에 대한 응답으로 server random 값,  클라이언트에서 받은 cipher_suites_list 중 서버가 선택한 값(cipher_suites_selected)을 contents에 담아 전송한다.
+clientHello에 대한 응답으로 server random 값,  클라이언트에서 받은 cipher_suites_list 중 서버가 선택한 값(cipher_suites_selected)을 contents에 담아 전송한다.
  
 ```
 {
@@ -48,7 +48,7 @@ Server->Client: applicationData
 ```  
 
  - send 'certificate'
-> 서버 인증서를 클라이언트로 보낸다.
+서버 인증서를 클라이언트로 보낸다.
 ```
 {
 	"session_id": "00000000...",
@@ -60,8 +60,8 @@ Server->Client: applicationData
 ```  
 
 - send 'finished'
-> 클라이언트에서 finished를 받으면 응답으로 보낸다.
-> master-key로 특정 값을 암호화하여 보낸다.
+클라이언트에서 finished를 받으면 응답으로 보낸다.
+master-key로 특정 값을 암호화하여 보낸다.
 ```
 {
 	"session_id": "00000000...",
@@ -74,8 +74,7 @@ Server->Client: applicationData
 
 #### **Client To Server**
 - send 'clientHello'
-> 클라이언트는 서버에 접속한 뒤 client random 값,  지원 가능한 cipher suites 목록(cipher_suites_list)  
-> 을 contents에 담아 전송한다.
+클라이언트는 서버에 접속한 뒤 client random 값,  지원 가능한 cipher suites 목록(cipher_suites_list)을 contents에 담아 전송한다.
  
 ```
 {
@@ -89,8 +88,7 @@ Server->Client: applicationData
 ```  
 
 - send 'keyExchange'
-> 클라이언트는 서버 인증서를 받아 공개키를 추출하고 공개키로 pre-master-key를
-> 암호화 생성하여 서버로 전송한다.
+클라이언트는 서버 인증서를 받아 공개키를 추출하고 공개키로 pre-master-key를 암호화 생성하여 서버로 전송한다.
 ```
 {
 	"session_id": "00000000...",
@@ -102,8 +100,7 @@ Server->Client: applicationData
 ```
 
 - send 'finished'
-> 클라이언트는 pre-master-key를 이용해 master-key를 생성 후
-> 특정 값을 암호화하여 보낸다.
+클라이언트는 pre-master-key를 이용해 master-key를 생성 후 특정 값을 암호화하여 보낸다.
 ```
 {
 	"session_id": "00000000...",

@@ -34,7 +34,7 @@ Server->Client: applicationData
 
 #### **Server To Client**
 - send 'serverHello'
-clientHello에 대한 응답으로 server random 값,  클라이언트에서 받은 cipher_suites_list 중 서버가 선택한 값(cipher_suites_selected)을 contents에 담아 전송한다.
+>clientHello에 대한 응답으로 server random 값,  클라이언트에서 받은 cipher_suites_list 중 서버가 선택한 값(cipher_suites_selected)을 contents에 담아 전송한다.
  
 ```
 {
